@@ -46,6 +46,31 @@ public interface ISceneManager {
     boolean stopPlayback(String playbackId);
 
     /**
+     * Set the playback speed for a running session.
+     * <p>
+     * Speed 1.0 is normal, 0.5 is half speed, 2.0 is double speed.
+     * Minimum speed is 0.01, no maximum.
+     *
+     * @param playbackId the session ID
+     * @param speed      the playback speed multiplier
+     * @return true if the session exists
+     */
+    boolean setPlaybackSpeed(String playbackId, double speed);
+
+    /**
+     * Seek a running playback to a specific tick.
+     * <p>
+     * If the target tick is behind the current position, the playback restarts
+     * from the beginning and fast-forwards to the target. This may take a moment
+     * for long recordings.
+     *
+     * @param playbackId the session ID
+     * @param tick       the target tick (0-based)
+     * @return true if the session exists
+     */
+    boolean seekPlayback(String playbackId, int tick);
+
+    /**
      * Stop all running playbacks.
      */
     void stopAllPlaybacks();
