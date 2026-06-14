@@ -8,6 +8,29 @@ public interface IRecap {
     ISceneManager getSceneManager();
 
     /**
+     * Play a recording anchored at a target location: the recording's capture
+     * origin is mapped onto {@code anchor}, so the whole replay (player NPC plus
+     * any recorded blocks) lands at {@code anchor} regardless of where the
+     * recording was made. This is the primitive for replaying a recording in a
+     * reused arena — record once, replay at any arena's anchor point.
+     *
+     * @param recordingName name of a stored recording (not a scene)
+     * @param anchor        world location to map the recording's origin onto
+     * @param loop          whether the replay loops
+     * @return the playback session id, or {@code null} if the recording is
+     *         missing or could not start
+     */
+    String playRecordingAnchored(String recordingName, org.bukkit.Location anchor, boolean loop);
+
+    /**
+     * Stop an active playback session started via
+     * {@link #playRecordingAnchored}.
+     *
+     * @return {@code true} if a session with that id was running
+     */
+    boolean stopPlayback(String sessionId);
+
+    /**
      * Opt-in a server→client packet type for capture during active recordings.
      * Allowlisted packets are recorded as raw bytes per tick and replayed
      * verbatim to NPC viewers when the recording is played back.
