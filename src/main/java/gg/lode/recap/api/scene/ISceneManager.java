@@ -3,6 +3,7 @@ package gg.lode.recap.api.scene;
 import org.bukkit.Location;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface ISceneManager {
 
@@ -34,11 +35,73 @@ public interface ISceneManager {
     boolean removeRecordingFromScene(String sceneName, String recordingName);
 
     /**
+     * Add a recording to a scene with optional offsets, optionally marking it
+     * playback-only (visual-only; excluded when a caller requests the
+     * non-playback-only actor set).
+     *
+     * @return true if added
+     */
+    boolean addRecordingToScene(String sceneName, String recordingName, int startDelay,
+                                double offsetX, double offsetY, double offsetZ, boolean playbackOnly);
+
+    /**
+     * Create a composite scene that plays the given child scenes together.
+     * Child entries are flattened (recursively) at play time.
+     *
+     * @return true if created
+     */
+    boolean createCompositeScene(String name, List<String> children);
+
+    /**
+     * Add a child scene to a composite, with no offset.
+     *
+     * @return true if added
+     */
+    boolean addChildScene(String parentName, String childName);
+
+    /**
+     * Add (or re-offset) a child scene with a position/time shift applied to
+     * every entry it contributes. All-zero offset/delay behaves as a plain
+     * child.
+     *
+     * @return true if added
+     */
+    boolean addChildScene(String parentName, String childName,
+                          double offsetX, double offsetY, double offsetZ, int startDelay);
+
+    /**
+     * Remove a child scene from a composite.
+     *
+     * @return true if removed
+     */
+    boolean removeChildScene(String parentName, String childName);
+
+    /**
+     * Get the child scene names of a composite scene.
+     */
+    Collection<String> getSceneChildren(String sceneName);
+
+    /**
+     * Copy a scene (entries + child offsets) to a new name.
+     *
+     * @return true if copied
+     */
+    boolean copyScene(String sourceName, String destName);
+
+    /**
      * Play a scene at a given location.
      *
      * @return a playback ID, or null if failed
      */
     String playScene(String sceneName, Location origin);
+
+    /**
+     * Play a scene at a given location, optionally looping.
+     *
+     * @param loop whether the whole scene loops
+     * @return a playback ID, or null if failed
+     */
+    String playScene(String sceneName, Location origin, boolean loop);
 
     /**
      * Stop a running playback.
