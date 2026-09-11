@@ -98,6 +98,39 @@ public interface IRecap {
     boolean ensureWorldRecording(String matchId, String worldName);
 
     /**
+     * Holds a playback where it is. The NPCs stop; nothing is lost.
+     *
+     * <p>A review is mostly spent stopped and stepping, not watching at speed, so pause is the
+     * normal state rather than the exception.
+     */
+    boolean pausePlayback(String sessionId, boolean paused);
+
+    /**
+     * Jumps a playback to a tick.
+     *
+     * <p>Seeking backwards replays from the start internally — a recording is a stream of changes,
+     * so the only way to know what a thing was at tick N is to apply everything up to it. Callers
+     * see a jump either way.
+     */
+    boolean seekPlayback(String sessionId, int tick);
+
+    /** Sets playback rate; 1.0 is real time. */
+    boolean setPlaybackSpeed(String sessionId, double speed);
+
+    /** Where a playback has reached, in ticks, or -1 when there is no such session. */
+    int getPlaybackTick(String sessionId);
+
+    /** How long a playback runs, in ticks, or -1 when there is no such session. */
+    int getPlaybackDuration(String sessionId);
+
+    /** Pause, seek and speed for a world playback, so the map scrubs with the people on it. */
+    boolean pauseWorldPlayback(String sessionId, boolean paused);
+
+    boolean seekWorldPlayback(String sessionId, int tick);
+
+    boolean setWorldPlaybackSpeed(String sessionId, double speed);
+
+    /**
      * Stops a world playback started by {@link #playWorldRecording}.
      *
      * @return {@code true} if a session with that id was running
