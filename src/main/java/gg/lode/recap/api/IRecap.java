@@ -123,6 +123,19 @@ public interface IRecap {
     /** How long a playback runs, in ticks, or -1 when there is no such session. */
     int getPlaybackDuration(String sessionId);
 
+    /**
+     * Where a playback's actor is standing right now, or null when it has none.
+     *
+     * <p>Replay actors are packet-level NPCs with no Bukkit entity behind them, so a caller
+     * cannot find one by looking at the world. Anything that wants to point a camera at a
+     * recorded player — a spectate menu, a jump-to-player control — has to ask.
+     *
+     * <p>Default null so an older implementation still links.
+     */
+    default org.bukkit.Location getPlaybackLocation(String sessionId) {
+        return null;
+    }
+
     /** Pause, seek and speed for a world playback, so the map scrubs with the people on it. */
     boolean pauseWorldPlayback(String sessionId, boolean paused);
 
