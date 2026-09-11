@@ -1,6 +1,9 @@
 package gg.lode.recap.api.recording;
 
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
+import org.bukkit.Material;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -149,4 +152,52 @@ public interface IRecordingManager {
      * @return the number of recordings deleted
      */
     int clearAllRecordings(String regex);
+
+    // --- World-scoped match recordings (v1.0.13+) ---
+
+    /**
+     * Start a world-scoped recording for an entire match.
+     * <p>
+     * Unlike per-player recordings, a world recording captures the entire map state:
+     * all block changes (mining, pistons, fluid flow, redstone, etc.) as a global
+     * delta stream, and non-player entity state (mobs, items, projectiles) with
+     * position, rotation, velocity, and metadata. This enables full-world replay
+     * with seeking to any location and time.
+     * <p>
+     * One world recording per match per world. If a recording already exists for
+     * this match+world pair, it is stopped and replaced.
+     *
+     * @param matchIdentifier a unique identifier for this match (e.g., "match-2026-09-10-001")
+     * @param worldName       the world being recorded (e.g., "world", "arena")
+     * @return a handle to the active recording session, or null if creation failed
+     */
+    @Nullable IWorldRecordingSession startWorldRecording(String matchIdentifier, String worldName);
+
+    /**
+     * Stop and finalize a world recording.
+     *
+     * @param matchIdentifier the match identifier used when calling {@link #startWorldRecording}
+     * @param worldName       the world name
+     * @return true if a recording was stopped
+     */
+    boolean stopWorldRecording(String matchIdentifier, String worldName);
+
+    /**
+     * Check if a world recording is active for a given match+world pair.
+     */
+    boolean isWorldRecording(String matchIdentifier, String worldName);
+
+    /**
+     * Record a synthetic block placement action. Called when a plugin drives a player entity
+     * that does not send real client packets (e.g., a Catalyst bot). The placement is recorded
+     * as if a normal BlockPlaceEvent occurred, without firing one (avoiding protection plugin issues).
+     * <p>
+     * This is a no-op if no recording is active for the player.
+     *
+     * @param player the player entity performing the placement
+     * @param block the block that was placed
+     * @param material the material that was placed
+     * @param oldState the block state before placement
+     */
+    void recordSyntheticBlockPlace(Player player, Block block, Material material, BlockState oldState);
 }
