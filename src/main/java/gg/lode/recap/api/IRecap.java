@@ -71,6 +71,45 @@ public interface IRecap {
     }
 
     /**
+     * Labels the subject of a playback, drawn before its name.
+     *
+     * <p>Overrides whatever the recording itself said it was. The recording's own label is the default,
+     * so a stand-in is marked without anybody asking; this is for a caller that wants its own wording,
+     * colour, or a team prefix the recording could not have known.
+     *
+     * <p>MiniMessage, so a colour can be given: {@code "<dark_gray>[MIA] "}. Trailing space included if
+     * one is wanted — the label is placed immediately before the name. Null or blank clears it back to
+     * nothing rather than back to the recording's own.
+     *
+     * @return whether a playback by that id was found
+     */
+    default boolean setPlaybackLabel(String sessionId, String label) {
+        return false;
+    }
+
+    /**
+     * Holds or resumes a match's world recording without closing it.
+     *
+     * <p>For a match the game itself has paused. The world recorder advances on its own timer, which
+     * keeps running while the game is frozen, so a paused match would otherwise leave the map's
+     * recording minutes longer than the player tracks taken during the same match — and a replay
+     * lines the two up by tick. Held, both sides stop counting and the pause does not exist in the
+     * footage at all, which is what a reviewer wants: the match, not the interruption.
+     *
+     * <p>Not the same as stopping it. A stopped world recording is written out and a second one would
+     * be a second file, and playback takes the newest for a match and world — so stopping and starting
+     * would quietly discard everything before the pause.
+     *
+     * @param matchId   the match whose world recording to hold
+     * @param worldName the recorded world's name
+     * @param paused    true to hold, false to carry on
+     * @return whether a live world recording for that pair was found
+     */
+    default boolean pauseWorldRecording(String matchId, String worldName, boolean paused) {
+        return false;
+    }
+
+    /**
      * Replays a world recording into a live world: the block changes a whole match made, put back
      * in the order and at the pace they happened.
      *

@@ -113,6 +113,24 @@ public interface IRecordingManager {
     }
 
     /**
+     * Labels what a subject is, to be shown above its head on playback.
+     *
+     * <p>For a stand-in above all. A bot wears the player's name, skin and uuid, so its recording
+     * cannot be told apart from theirs — and a reviewer watching it has no way to know nobody was
+     * driving. The caller is the only thing that knows, so the caller says.
+     *
+     * <p>Free-form and short; a couple of letters reads best above a head. Null or blank clears it.
+     * Takes effect on the saved recording, so it may be set any time before the recording is stopped.
+     *
+     * @param recordingName the live recording to label
+     * @param tag           what the subject is, or null to clear
+     * @return whether a live recording by that name was found
+     */
+    default boolean tagRecording(String recordingName, String tag) {
+        return false;
+    }
+
+    /**
      * Stop recording a player and save the recording.
      *
      * @param player the player to stop recording
