@@ -1,5 +1,7 @@
 package gg.lode.recap.api;
 
+import java.util.UUID;
+import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 
 import gg.lode.recap.api.recording.IRecordingManager;
@@ -111,6 +113,26 @@ public interface IRecap {
      */
     default String playbackTag(String sessionId) {
         return "";
+    }
+
+    /**
+     * Limits who can see a playback, or lifts the limit.
+     *
+     * <p>Only the named players receive the subject and everything it emits — its sounds and particles
+     * included, so a hidden subject is hidden rather than merely invisible. Null or empty means
+     * everybody, which is the default.
+     *
+     * <p>May be changed at any time: a viewer taken off the list has the subject removed from their
+     * screen on the next tick, and one added gets it spawned for them. That is what makes per-viewer
+     * choices possible — a reviewer hiding the people who were already out while the person beside them
+     * keeps watching all of them.
+     *
+     * @param sessionId the playback to restrict
+     * @param viewers   who may see it, or null for everybody
+     * @return whether a playback by that id was found
+     */
+    default boolean setPlaybackViewers(String sessionId, Collection<UUID> viewers) {
+        return false;
     }
 
     /**
