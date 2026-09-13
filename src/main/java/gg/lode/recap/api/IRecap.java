@@ -98,6 +98,52 @@ public interface IRecap {
     boolean ensureWorldRecording(String matchId, String worldName);
 
     /**
+     * Notes something that happened in a match, at the tick the match is currently at.
+     *
+     * <p>For what Recap cannot know by watching: which blow was a kill, when a round turned, who took
+     * an objective. Call it as the thing happens and it lands on the right tick, because the tick comes
+     * from the recording rather than from the caller — a marker timed by wall clock drifts against the
+     * footage on any server that dips below twenty ticks a second, and a feed minutes out of step reads
+     * as a broken replay.
+     *
+     * <p>Ignored when no match is being recorded, so it is safe to call unconditionally.
+     *
+     * @param matchId the match being recorded
+     * @param type    what kind of thing happened, in your own vocabulary
+     * @param data    the detail; copied, and must contain no null keys or values
+     * @return true when it was recorded
+     */
+    boolean addTimelineMarker(String matchId, String type, java.util.Map<String, String> data);
+
+    /**
+     * Every marker recorded for a match, in the order they happened.
+     *
+     * <p>Empty when the match has none, which is the normal state of a match recorded before anything
+     * wrote any — so a caller never has to ask whether the feature was in use at the time.
+     */
+    java.util.List<gg.lode.recap.api.timeline.TimelineMarker> getTimelineMarkers(String matchId);
+
+    /**
+     * The markers recorded at or before a tick, newest last.
+     *
+     * <p>What a feed wants while a replay plays, and the reason a seek does not replay an hour of
+     * events at once: ask again after a jump and the answer is what had happened by then.
+     *
+     * @param upToTick the recording tick being shown
+     */
+    java.util.List<gg.lode.recap.api.timeline.TimelineMarker> getTimelineMarkersUpTo(String matchId, int upToTick);
+
+    /**
+     * Makes sure a match's markers are on this server, fetching them from shared storage when not.
+     *
+     * <p><b>Blocks.</b> Call it off the main thread, alongside {@link #ensureWorldRecording}: a replay
+     * server loads a match asynchronously, which is where this belongs.
+     *
+     * @return true when markers are present locally afterwards, including when the match simply has none
+     */
+    boolean ensureMatchTimeline(String matchId);
+
+    /**
      * Holds a playback where it is. The NPCs stop; nothing is lost.
      *
      * <p>A review is mostly spent stopped and stepping, not watching at speed, so pause is the
