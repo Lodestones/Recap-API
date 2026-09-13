@@ -88,6 +88,32 @@ public interface IRecap {
     }
 
     /**
+     * The entity id of the subject a playback is replaying, or -1.
+     *
+     * <p>For anything that wants to hang something off the subject — a nametag plugin mounting a text
+     * display above it, most obviously. A replayed subject is built from packets and is not an entity
+     * the server has, so an id is the only handle that exists for it; there is no {@code Player} and
+     * nothing in {@code getOnlinePlayers()}.
+     *
+     * <p>Only meaningful while the playback is running, and only for a session replaying one subject.
+     * The first of them otherwise.
+     */
+    default int playbackEntityId(String sessionId) {
+        return -1;
+    }
+
+    /**
+     * What the recording behind a playback said its subject was, or an empty string.
+     *
+     * <p>The label set at capture time — {@code "MIA"} for a stand-in. Playback draws it itself, so
+     * this is for a caller that would rather draw it another way, and needs to know there is something
+     * to draw.
+     */
+    default String playbackTag(String sessionId) {
+        return "";
+    }
+
+    /**
      * Holds or resumes a match's world recording without closing it.
      *
      * <p>For a match the game itself has paused. The world recorder advances on its own timer, which
