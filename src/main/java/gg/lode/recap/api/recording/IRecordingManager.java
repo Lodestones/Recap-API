@@ -200,4 +200,27 @@ public interface IRecordingManager {
      * @param oldState the block state before placement
      */
     void recordSyntheticBlockPlace(Player player, Block block, Material material, BlockState oldState);
+
+    /**
+     * Enable voice-chat capture for a player's current recording.
+     * <p>
+     * This requires Simple Voice Chat to be installed on the server and the voice capture hook
+     * to be registered. If voice capture is not available, this call has no effect.
+     *
+     * @param player the player whose recording should capture voice
+     */
+    void enableVoiceCapture(Player player);
+
+    /**
+     * Enable voice-chat capture for a named recording.
+     * <p>
+     * This is the name-targeted variant — use this when a player holds several concurrent
+     * recordings and you need to enable voice capture on a specific one.
+     * <p>
+     * This requires Simple Voice Chat to be installed on the server and the voice capture hook
+     * to be registered. If voice capture is not available, this call has no effect.
+     *
+     * @param recordingName the name of the recording to enable voice capture for
+     */
+    void enableVoiceCapture(String recordingName);
 }
