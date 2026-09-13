@@ -89,6 +89,30 @@ public interface IRecordingManager {
     boolean startRecording(Player player, String name, boolean persist, int maxSeconds);
 
     /**
+     * Starts a recording that is not the beginning of what it belongs to.
+     *
+     * <p>Several recordings can describe one match — a player revived, reconnecting, or picked back up
+     * after the server restarted mid-match — and those later ones begin minutes in. {@code startTick}
+     * says how far in, and playback holds the track until then, so the match reads as one timeline
+     * instead of every track starting together and putting the same player on the map twice.
+     *
+     * <p>Named apart from {@link #startRecording(Player, String, boolean, int)} rather than overloading
+     * it: that fourth int is a rolling-buffer length, and two methods differing only in what an int
+     * means is a bug waiting for somebody to pass the wrong one. Default-implemented, so an older
+     * implementation keeps linking and simply ignores the offset.
+     *
+     * @param player    the player to record
+     * @param name      a name for this recording
+     * @param persist   true for full recording, false for rolling buffer
+     * @param startTick ticks from the start of the match to this recording's first frame; 0 when it
+     *                  starts with the match
+     * @return true if recording started successfully
+     */
+    default boolean startRecordingAt(Player player, String name, boolean persist, int startTick) {
+        return startRecording(player, name, persist);
+    }
+
+    /**
      * Stop recording a player and save the recording.
      *
      * @param player the player to stop recording

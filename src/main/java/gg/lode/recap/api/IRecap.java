@@ -54,6 +54,23 @@ public interface IRecap {
     boolean stopPlayback(String sessionId);
 
     /**
+     * How far into a match its recordings already reach, in ticks.
+     *
+     * <p>The furthest point any track for this match covers: the greatest start tick plus duration
+     * across all of them, which is where recording stopped. Zero when the match has none.
+     *
+     * <p>For a server picking a match back up after restarting in the middle of it. The tick counter
+     * it was using does not outlive the process, and counting from zero again stamps everything
+     * recorded afterwards as starting with the match. Asked of the recordings rather than worked out
+     * from a clock because the recordings are what the answer has to agree with.
+     *
+     * <p>Default-implemented for older builds, which answer zero and so behave as they did.
+     */
+    default int recordedTicksFor(String matchId) {
+        return 0;
+    }
+
+    /**
      * Replays a world recording into a live world: the block changes a whole match made, put back
      * in the order and at the pace they happened.
      *
