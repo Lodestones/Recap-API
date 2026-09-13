@@ -105,6 +105,35 @@ public interface IRecap {
     }
 
     /**
+     * The uuid the subject's body is spawned under, or null.
+     *
+     * <p>The companion to {@link #playbackEntityId(String)}, for the callers that need a uuid rather
+     * than an id — anything addressing the body through a client mod, which speaks in uuids because
+     * that is what the client knows an entity by. A replayed subject has no {@code Player} and is in
+     * nobody's entity list, so this is the only place the uuid can come from.
+     *
+     * <p>Default null so an older implementation still links.
+     */
+    default UUID playbackEntityUuid(String sessionId) {
+        return null;
+    }
+
+    /**
+     * Whether the subject is talking at the frame being shown.
+     *
+     * <p>For drawing a speaking indicator over a replayed subject, the way one is drawn over a live
+     * player. Answered from the recorded voice track and the playback clock, so it follows seeking and
+     * pausing: scrubbing to the middle of a sentence lights it, pausing puts it out.
+     *
+     * <p>Held briefly past the last recorded frame, so the indicator does not flicker between words.
+     *
+     * <p>Default false so an older implementation still links.
+     */
+    default boolean isPlaybackSpeaking(String sessionId) {
+        return false;
+    }
+
+    /**
      * What the recording behind a playback said its subject was, or an empty string.
      *
      * <p>The label set at capture time — {@code "MIA"} for a stand-in. Playback draws it itself, so
@@ -113,6 +142,28 @@ public interface IRecap {
      */
     default String playbackTag(String sessionId) {
         return "";
+    }
+
+    /**
+     * The health of a playback's subject at the frame being shown, or -1 when it is not known yet.
+     *
+     * <p>As the recording stored it, half-hearts included. Absorption was not recorded apart from it, so
+     * this is what the player had rather than what kind of hearts they were.
+     */
+    default float playbackHealth(String sessionId) {
+        return -1f;
+    }
+
+    /**
+     * Absorption hearts on a playback's subject at the frame being shown.
+     *
+     * <p>Apart from {@link #playbackHealth(String)} because they are drawn apart — yellow over red — and
+     * because a caller showing a total wants to add them while one choosing a colour wants to know
+     * whether there are any. Zero for a recording made before they were kept, which is every recording
+     * made before this method existed.
+     */
+    default float playbackAbsorption(String sessionId) {
+        return 0f;
     }
 
     /**
