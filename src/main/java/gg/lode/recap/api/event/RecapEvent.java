@@ -1,5 +1,6 @@
 package gg.lode.recap.api.event;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,6 @@ public abstract class RecapEvent extends Event {
     }
 
     public void call() {
-        org.bukkit.Bukkit.getPluginManager().callEvent(this);
+        Bukkit.getPluginManager().callEvent(this);
     }
 }

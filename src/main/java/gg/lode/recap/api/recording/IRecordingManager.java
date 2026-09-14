@@ -11,119 +11,61 @@ import java.util.UUID;
 
 public interface IRecordingManager {
 
-    /**
-     * Start recording a player's actions in persist mode (all frames kept).
-     *
-     * @param player the player to record
-     * @param name   a name for this recording
-     * @return true if recording started successfully
-     */
+    // The startRecording family below all do the same thing, they just vary in what you supply.
+    //
+    //   persist = true   every frame is streamed to disk. The default.
+    //   persist = false  rolling-buffer mode: only the last N seconds stay in memory and older
+    //                    frames fall off as new ones arrive. Handy for moderation, where you record
+    //                    everyone all the time and only save when something actually happens.
+    //                    N defaults to 30 seconds unless you pass maxSeconds.
+    //
+    // Skip the name and one is generated for you; hand a real one to
+    // stopRecording(Player, String) when you save. Every overload returns true if recording started.
+
+    /** Records a player under a given name, keeping every frame. */
     boolean startRecording(Player player, String name);
 
-    /**
-     * Start recording a player's actions with an auto-generated name.
-     * <p>
-     * When {@code persist} is {@code false}, the recording operates in rolling buffer mode —
-     * only the last 30 seconds of frames are kept in memory. Older frames are discarded
-     * as new ones are captured. This is useful for moderation: always record players, and
-     * only save when an incident occurs.
-     * <p>
-     * When {@code persist} is {@code true}, all frames are streamed to disk (default behavior).
-     * <p>
-     * The recording name is auto-generated. Use {@link #stopRecording(Player, String)} to
-     * assign a meaningful name when saving.
-     *
-     * @param player  the player to record
-     * @param persist true for full recording, false for rolling buffer (last 30 seconds)
-     * @return true if recording started successfully
-     */
+    /** Records a player under a generated name. */
     boolean startRecording(Player player, boolean persist);
 
-    /**
-     * Start recording a player's actions with an auto-generated name and custom buffer duration.
-     * <p>
-     * When {@code persist} is {@code false}, only the last {@code maxSeconds} of frames
-     * are kept in memory. When {@code persist} is {@code true}, {@code maxSeconds} is ignored
-     * and all frames are kept.
-     * <p>
-     * The recording name is auto-generated. Use {@link #stopRecording(Player, String)} to
-     * assign a meaningful name when saving.
-     *
-     * @param player     the player to record
-     * @param persist    true for full recording, false for rolling buffer
-     * @param maxSeconds maximum seconds to keep in the rolling buffer (only used when persist is false)
-     * @return true if recording started successfully
-     */
+    /** Records a player under a generated name, with your own rolling-buffer length. */
     boolean startRecording(Player player, boolean persist, int maxSeconds);
 
-    /**
-     * Start recording a player's actions.
-     * <p>
-     * When {@code persist} is {@code false}, the recording operates in rolling buffer mode —
-     * only the last 30 seconds of frames are kept in memory. Older frames are discarded
-     * as new ones are captured. This is useful for moderation: always record players, and
-     * only save when an incident occurs.
-     * <p>
-     * When {@code persist} is {@code true}, all frames are streamed to disk (default behavior).
-     *
-     * @param player  the player to record
-     * @param name    a name for this recording
-     * @param persist true for full recording, false for rolling buffer (last 30 seconds)
-     * @return true if recording started successfully
-     */
+    /** Records a player under a given name. */
     boolean startRecording(Player player, String name, boolean persist);
 
-    /**
-     * Start recording a player's actions with a custom rolling buffer duration.
-     * <p>
-     * When {@code persist} is {@code false}, only the last {@code maxSeconds} of frames
-     * are kept in memory. When {@code persist} is {@code true}, {@code maxSeconds} is ignored
-     * and all frames are kept.
-     *
-     * @param player     the player to record
-     * @param name       a name for this recording
-     * @param persist    true for full recording, false for rolling buffer
-     * @param maxSeconds maximum seconds to keep in the rolling buffer (only used when persist is false)
-     * @return true if recording started successfully
-     */
+    /** Records a player under a given name, with your own rolling-buffer length. */
     boolean startRecording(Player player, String name, boolean persist, int maxSeconds);
 
     /**
-     * Starts a recording that is not the beginning of what it belongs to.
+     * Starts a recording that doesn't begin at the start of the match.
      *
-     * <p>Several recordings can describe one match — a player revived, reconnecting, or picked back up
-     * after the server restarted mid-match — and those later ones begin minutes in. {@code startTick}
-     * says how far in, and playback holds the track until then, so the match reads as one timeline
-     * instead of every track starting together and putting the same player on the map twice.
+     * <p>One match can produce several recordings: a player revived, reconnected, or picked back up
+     * after a mid-match restart. Those start minutes in. {@code startTick} says how far in, and
+     * playback holds the track until then, so the match reads as one timeline instead of every track
+     * firing at once and putting the same player on the map twice.
      *
-     * <p>Named apart from {@link #startRecording(Player, String, boolean, int)} rather than overloading
-     * it: that fourth int is a rolling-buffer length, and two methods differing only in what an int
-     * means is a bug waiting for somebody to pass the wrong one. Default-implemented, so an older
-     * implementation keeps linking and simply ignores the offset.
+     * <p>It gets its own name rather than another overload because the fourth int on
+     * {@link #startRecording(Player, String, boolean, int)} is a rolling-buffer length, and two
+     * methods differing only in what an int means is a bug waiting to happen.
      *
-     * @param player    the player to record
-     * @param name      a name for this recording
-     * @param persist   true for full recording, false for rolling buffer
-     * @param startTick ticks from the start of the match to this recording's first frame; 0 when it
+     * @param startTick ticks from the start of the match to this recording's first frame, 0 when it
      *                  starts with the match
-     * @return true if recording started successfully
      */
     default boolean startRecordingAt(Player player, String name, boolean persist, int startTick) {
         return startRecording(player, name, persist);
     }
 
     /**
-     * Labels what a subject is, to be shown above its head on playback.
+     * Labels what a subject is, shown above its head on playback.
      *
-     * <p>For a stand-in above all. A bot wears the player's name, skin and uuid, so its recording
-     * cannot be told apart from theirs — and a reviewer watching it has no way to know nobody was
-     * driving. The caller is the only thing that knows, so the caller says.
+     * <p>Mostly for stand-ins. A bot wears the player's name, skin and uuid, so its recording looks
+     * exactly like theirs and a reviewer has no way to tell nobody was driving. Only the caller
+     * knows, so the caller says.
      *
-     * <p>Free-form and short; a couple of letters reads best above a head. Null or blank clears it.
-     * Takes effect on the saved recording, so it may be set any time before the recording is stopped.
+     * <p>Keep it short, a couple of letters reads best above a head. Null or blank clears it. It
+     * lands on the saved recording, so you can set it any time before the recording stops.
      *
-     * @param recordingName the live recording to label
-     * @param tag           what the subject is, or null to clear
      * @return whether a live recording by that name was found
      */
     default boolean tagRecording(String recordingName, String tag) {
@@ -140,16 +82,11 @@ public interface IRecordingManager {
     @Nullable IRecordingSession stopRecording(Player player);
 
     /**
-     * Stop recording a player, assign a name, and save the recording.
-     * <p>
-     * This is useful when the recording was started with an auto-generated name
-     * (e.g. moderation rolling buffer) and you want to assign a meaningful name
-     * at save time.
+     * Stops recording a player, names the result, and saves it. This is the one to use when the
+     * recording started with a generated name and you only know what to call it at save time.
      *
-     * @param player the player to stop recording
-     * @param name   the name to assign to the saved recording
-     * @return the completed recording session with metadata, or null if the player was not recording,
-     *         the name is already taken, or if saving failed
+     * @return the completed session, or null if the player wasn't recording, the name is taken, or
+     *         saving failed
      */
     @Nullable IRecordingSession stopRecording(Player player, String name);
 
@@ -186,11 +123,9 @@ public interface IRecordingManager {
     int clearAllRecordings();
 
     /**
-     * Delete all saved recordings whose names match the given regex pattern.
-     * <p>
-     * Example: {@code clearAllRecordings("combatlog-.*")} deletes all combat log recordings.
+     * Deletes every saved recording whose name matches a regex, for example
+     * {@code clearAllRecordings("combatlog-.*")}.
      *
-     * @param regex the regex pattern to match recording names against
      * @return the number of recordings deleted
      */
     int clearAllRecordings(String regex);
@@ -198,20 +133,17 @@ public interface IRecordingManager {
     // --- World-scoped match recordings (v1.0.13+) ---
 
     /**
-     * Start a world-scoped recording for an entire match.
-     * <p>
-     * Unlike per-player recordings, a world recording captures the entire map state:
-     * all block changes (mining, pistons, fluid flow, redstone, etc.) as a global
-     * delta stream, and non-player entity state (mobs, items, projectiles) with
-     * position, rotation, velocity, and metadata. This enables full-world replay
-     * with seeking to any location and time.
-     * <p>
-     * One world recording per match per world. If a recording already exists for
-     * this match+world pair, it is stopped and replaced.
+     * Starts a world-scoped recording covering a whole match.
      *
-     * @param matchIdentifier a unique identifier for this match (e.g., "match-2026-09-10-001")
-     * @param worldName       the world being recorded (e.g., "world", "arena")
-     * @return a handle to the active recording session, or null if creation failed
+     * <p>Where a player recording follows one person, this follows the map: every block change
+     * (mining, pistons, fluid, redstone) as one delta stream, plus non-player entities with their
+     * position, rotation, velocity and metadata. That's what makes full-world replay work, seekable
+     * to any place and time.
+     *
+     * <p>One per match per world. Starting a second for the same pair stops and replaces the first.
+     *
+     * @param matchIdentifier unique id for this match, for example "match-2026-09-10-001"
+     * @return a handle to the live session, or null if it couldn't be created
      */
     @Nullable IWorldRecordingSession startWorldRecording(String matchIdentifier, String worldName);
 
@@ -230,39 +162,24 @@ public interface IRecordingManager {
     boolean isWorldRecording(String matchIdentifier, String worldName);
 
     /**
-     * Record a synthetic block placement action. Called when a plugin drives a player entity
-     * that does not send real client packets (e.g., a Catalyst bot). The placement is recorded
-     * as if a normal BlockPlaceEvent occurred, without firing one (avoiding protection plugin issues).
-     * <p>
-     * This is a no-op if no recording is active for the player.
+     * Records a block placement that no client packet will ever describe, because a plugin is
+     * driving the player (a Catalyst bot, say). It's recorded as though a BlockPlaceEvent had
+     * fired, without actually firing one, so protection plugins stay out of it.
      *
-     * @param player the player entity performing the placement
-     * @param block the block that was placed
-     * @param material the material that was placed
-     * @param oldState the block state before placement
+     * <p>No-op when the player isn't being recorded.
      */
     void recordSyntheticBlockPlace(Player player, Block block, Material material, BlockState oldState);
 
     /**
-     * Enable voice-chat capture for a player's current recording.
-     * <p>
-     * This requires Simple Voice Chat to be installed on the server and the voice capture hook
-     * to be registered. If voice capture is not available, this call has no effect.
-     *
-     * @param player the player whose recording should capture voice
+     * Turns on voice-chat capture for a player's current recording. Needs Simple Voice Chat
+     * installed and the capture hook registered; without those it quietly does nothing.
      */
     void enableVoiceCapture(Player player);
 
     /**
-     * Enable voice-chat capture for a named recording.
-     * <p>
-     * This is the name-targeted variant — use this when a player holds several concurrent
-     * recordings and you need to enable voice capture on a specific one.
-     * <p>
-     * This requires Simple Voice Chat to be installed on the server and the voice capture hook
-     * to be registered. If voice capture is not available, this call has no effect.
-     *
-     * @param recordingName the name of the recording to enable voice capture for
+     * Turns on voice-chat capture for one named recording. Use this when a player is holding
+     * several recordings at once and only one of them should capture audio. Same requirements as
+     * {@link #enableVoiceCapture(Player)}.
      */
     void enableVoiceCapture(String recordingName);
 }

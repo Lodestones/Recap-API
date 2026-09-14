@@ -7,144 +7,74 @@ import java.util.List;
 
 public interface ISceneManager {
 
-    /**
-     * Create a new empty scene.
-     *
-     * @param name the scene name
-     * @return true if created
-     */
+    /** Creates an empty scene. */
     boolean createScene(String name);
 
     /**
-     * Add a recording to a scene with optional offsets.
+     * Adds a recording to a scene, shifted in time and space.
      *
-     * @param sceneName     the scene to add to
-     * @param recordingName the recording to add
-     * @param startDelay    delay in ticks before this recording starts
-     * @param offsetX       X position offset
-     * @param offsetY       Y position offset
-     * @param offsetZ       Z position offset
-     * @return true if added
+     * @param startDelay ticks to wait before this entry starts
      */
     boolean addRecordingToScene(String sceneName, String recordingName, int startDelay,
                                 double offsetX, double offsetY, double offsetZ);
 
-    /**
-     * Remove a recording from a scene.
-     */
     boolean removeRecordingFromScene(String sceneName, String recordingName);
 
     /**
-     * Add a recording to a scene with optional offsets, optionally marking it
-     * playback-only (visual-only; excluded when a caller requests the
-     * non-playback-only actor set).
-     *
-     * @return true if added
+     * Same, but {@code playbackOnly} marks the entry as visual dressing: it's left out whenever a
+     * caller asks for the non-playback-only actors.
      */
     boolean addRecordingToScene(String sceneName, String recordingName, int startDelay,
                                 double offsetX, double offsetY, double offsetZ, boolean playbackOnly);
 
-    /**
-     * Create a composite scene that plays the given child scenes together.
-     * Child entries are flattened (recursively) at play time.
-     *
-     * @return true if created
-     */
+    /** Creates a scene that plays other scenes together. Children are flattened at play time. */
     boolean createCompositeScene(String name, List<String> children);
 
-    /**
-     * Add a child scene to a composite, with no offset.
-     *
-     * @return true if added
-     */
+    /** Adds a child scene with no shift. */
     boolean addChildScene(String parentName, String childName);
 
     /**
-     * Add (or re-offset) a child scene with a position/time shift applied to
-     * every entry it contributes. All-zero offset/delay behaves as a plain
-     * child.
-     *
-     * @return true if added
+     * Adds a child scene, or re-shifts one already there. The offset and delay apply to every entry
+     * the child contributes; all zeroes behaves like the plain version.
      */
     boolean addChildScene(String parentName, String childName,
                           double offsetX, double offsetY, double offsetZ, int startDelay);
 
-    /**
-     * Remove a child scene from a composite.
-     *
-     * @return true if removed
-     */
     boolean removeChildScene(String parentName, String childName);
 
-    /**
-     * Get the child scene names of a composite scene.
-     */
     Collection<String> getSceneChildren(String sceneName);
 
-    /**
-     * Copy a scene (entries + child offsets) to a new name.
-     *
-     * @return true if copied
-     */
+    /** Copies a scene, entries and child offsets included, under a new name. */
     boolean copyScene(String sourceName, String destName);
 
-    /**
-     * Play a scene at a given location.
-     *
-     * @return a playback ID, or null if failed
-     */
+    /** Plays a scene at a location. Returns a playback id, or null if it didn't start. */
     String playScene(String sceneName, Location origin);
 
-    /**
-     * Play a scene at a given location, optionally looping.
-     *
-     * @param loop whether the whole scene loops
-     * @return a playback ID, or null if failed
-     */
+    /** Plays a scene at a location, optionally looping the whole thing. */
     String playScene(String sceneName, Location origin, boolean loop);
 
-    /**
-     * Stop a running playback.
-     */
     boolean stopPlayback(String playbackId);
 
     /**
-     * Set the playback speed for a running session.
-     * <p>
-     * Speed 1.0 is normal, 0.5 is half speed, 2.0 is double speed.
-     * Minimum speed is 0.01, no maximum.
+     * Sets playback rate: 1.0 is real time, 0.5 half, 2.0 double. Floor is 0.01, no ceiling.
      *
-     * @param playbackId the session ID
-     * @param speed      the playback speed multiplier
-     * @return true if the session exists
+     * @return true if that session exists
      */
     boolean setPlaybackSpeed(String playbackId, double speed);
 
     /**
-     * Seek a running playback to a specific tick.
-     * <p>
-     * If the target tick is behind the current position, the playback restarts
-     * from the beginning and fast-forwards to the target. This may take a moment
-     * for long recordings.
+     * Jumps a playback to a tick (0-based).
      *
-     * @param playbackId the session ID
-     * @param tick       the target tick (0-based)
-     * @return true if the session exists
+     * <p>Going backwards means restarting and fast-forwarding to the target, which can take a
+     * moment on a long recording.
+     *
+     * @return true if that session exists
      */
     boolean seekPlayback(String playbackId, int tick);
 
-    /**
-     * Stop all running playbacks.
-     */
     void stopAllPlaybacks();
 
-    /**
-     * Get all scene names.
-     */
     Collection<String> getSceneNames();
 
-    /**
-     * Delete a scene.
-     */
     boolean deleteScene(String name);
 }
