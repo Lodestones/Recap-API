@@ -187,6 +187,28 @@ public interface IRecap {
     }
 
     /**
+     * Outlines a subject on one viewer's screen, in a colour, or takes the outline off.
+     *
+     * <p>Per viewer, because an outline is a choice made by whoever is watching rather than anything
+     * the footage says — two reviewers watching one match pick out different people.
+     *
+     * <p>Done here rather than by the caller because the two packets an outline needs are ones this
+     * plugin owns and re-sends: the glow bit is part of the body's flags, which go out whenever they
+     * change, and the colour comes from the body's team, which also carries its label and nameplate
+     * setting. An outline drawn from outside survives a few frames and then loses its colour and
+     * goes out.
+     *
+     * @param sessionId the playback to outline
+     * @param viewer    the screen it applies to
+     * @param colour    a colour name as Minecraft spells it — {@code GREEN}, {@code RED} — or null
+     *                  to take the outline off. An unknown name is treated as null.
+     * @return whether a playback by that id was found
+     */
+    default boolean setPlaybackGlow(String sessionId, UUID viewer, String colour) {
+        return false;
+    }
+
+    /**
      * Holds or resumes a match's world recording without closing it.
      *
      * <p>For a match the game itself has paused. The world recorder advances on its own timer, which
