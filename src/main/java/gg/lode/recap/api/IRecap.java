@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 import gg.lode.recap.api.recording.IRecordingManager;
@@ -224,6 +225,22 @@ public interface IRecap {
      * whatever else your replay server loads asynchronously.
      */
     boolean ensureWorldRecording(String matchId, String worldName);
+
+    /**
+     * Tells the world recording that a block changed, when nothing else will.
+     *
+     * <p>The recorder learns about terrain from the events a player's own actions fire. A plugin that
+     * sets blocks itself fires none of them, so a tunnel carved by an item was simply missing from the
+     * replay. Calling this records the block as it stands now.
+     *
+     * <p>For callers that cannot fire the matching Bukkit event, which is most of them: firing one from
+     * a handler that listens for it re-enters that handler, and at least one item duplicated its drops
+     * that way. This takes the same information straight to the recorder instead.
+     *
+     * <p>No-op when the block's world is not being recorded.
+     */
+    default void recordWorldBlockChange(Block block) {
+    }
 
     /**
      * Notes something that happened in a match, stamped at the tick the match is currently at.
